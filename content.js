@@ -407,18 +407,84 @@
     return `
       @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
+      /* ── Theme Variables (light/dark) ─────────────────────────── */
+
+      :host {
+        --fa-bg: #ffffff;
+        --fa-bg-elevated: #f8f9fa;
+        --fa-bg-hover: #f1f3f4;
+        --fa-border: #dadce0;
+        --fa-border-subtle: #e8eaed;
+        --fa-text: #202124;
+        --fa-text-secondary: #5f6368;
+        --fa-text-muted: #80868b;
+        --fa-shadow: 0 1px 3px 0 rgba(60,64,67,0.3), 0 4px 8px 3px rgba(60,64,67,0.15);
+        --fa-shadow-heavy: 0 6px 20px 4px rgba(60,64,67,0.2), 0 2px 6px 0 rgba(60,64,67,0.3);
+        --fa-overlay-bg: rgba(0,0,0,0.32);
+        --fa-accent: #1a73e8;
+        --fa-accent-hover: #1765cc;
+        --fa-accent-subtle: rgba(26,115,232,0.08);
+        --fa-danger: #d93025;
+        --fa-danger-subtle: rgba(217,48,37,0.08);
+        --fa-warning-bg: #fef7e0;
+        --fa-warning-border: #fdd663;
+        --fa-warning-text: #3c4043;
+        --fa-ring-bg: #e8eaed;
+        --fa-ring-progress: #d93025;
+        --fa-stat-bg: #f1f3f4;
+        --fa-history-bg: #f8f9fa;
+        --fa-btn-ghost-bg: transparent;
+        --fa-btn-ghost-border: #dadce0;
+        --fa-btn-ghost-text: #5f6368;
+        --fa-btn-ghost-hover: #f1f3f4;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :host {
+          --fa-bg: #292a2d;
+          --fa-bg-elevated: #35363a;
+          --fa-bg-hover: #3c3d41;
+          --fa-border: #3c3d41;
+          --fa-border-subtle: #4a4b50;
+          --fa-text: #e8eaed;
+          --fa-text-secondary: #9aa0a6;
+          --fa-text-muted: #80868b;
+          --fa-shadow: 0 1px 3px 0 rgba(0,0,0,0.5), 0 4px 8px 3px rgba(0,0,0,0.35);
+          --fa-shadow-heavy: 0 6px 20px 4px rgba(0,0,0,0.4), 0 2px 6px 0 rgba(0,0,0,0.5);
+          --fa-overlay-bg: rgba(0,0,0,0.6);
+          --fa-accent: #8ab4f8;
+          --fa-accent-hover: #aecbfa;
+          --fa-accent-subtle: rgba(138,180,248,0.12);
+          --fa-danger: #f28b82;
+          --fa-danger-subtle: rgba(242,139,130,0.12);
+          --fa-warning-bg: #3a3000;
+          --fa-warning-border: #7a6a00;
+          --fa-warning-text: #e8eaed;
+          --fa-ring-bg: #3c3d41;
+          --fa-ring-progress: #f28b82;
+          --fa-stat-bg: #35363a;
+          --fa-history-bg: #35363a;
+          --fa-btn-ghost-bg: transparent;
+          --fa-btn-ghost-border: #4a4b50;
+          --fa-btn-ghost-text: #9aa0a6;
+          --fa-btn-ghost-hover: #3c3d41;
+        }
+      }
+
       * {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
       }
 
+      /* ── Base Overlay ──────────────────────────────────────────── */
+
       .fa-overlay {
         position: fixed;
         z-index: 2147483647;
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        font-family: 'Inter', 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         opacity: 0;
-        transition: opacity 0.3s ease, transform 0.3s ease;
+        transition: opacity 0.2s ease, transform 0.2s ease;
       }
 
       .fa-overlay.fa-visible {
@@ -427,15 +493,15 @@
 
       .fa-overlay.fa-hiding {
         opacity: 0;
-        transform: translateY(-10px);
+        transform: translateY(-8px);
       }
 
-      /* ── Nudge Banner ─────────────────────────────────────────── */
+      /* ── Nudge Card (Stage 2) ──────────────────────────────────── */
 
       .fa-nudge {
-        top: 20px;
-        right: 20px;
-        transform: translateY(-10px);
+        top: 16px;
+        right: 16px;
+        transform: translateY(-8px);
       }
 
       .fa-nudge.fa-visible {
@@ -443,15 +509,13 @@
       }
 
       .fa-nudge-card {
-        width: 380px;
-        background: rgba(15, 15, 22, 0.95);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 16px;
+        width: 360px;
+        background: var(--fa-bg);
+        border: 1px solid var(--fa-border);
+        border-radius: 12px;
         padding: 20px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(108, 92, 231, 0.1);
-        color: #f0f0f5;
+        box-shadow: var(--fa-shadow-heavy);
+        color: var(--fa-text);
       }
 
       .fa-nudge-header {
@@ -469,20 +533,8 @@
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
-      }
-
-      .fa-badge-reading ~ .fa-nudge-subtitle { color: #6C5CE7; }
-      .fa-nudge-card:has(.fa-badge-reading) .fa-nudge-icon {
-        background: rgba(108, 92, 231, 0.15);
-        color: #6C5CE7;
-      }
-      .fa-nudge-card:has(.fa-badge-browsing) .fa-nudge-icon {
-        background: rgba(0, 184, 148, 0.15);
-        color: #00B894;
-      }
-      .fa-nudge-card:has(.fa-badge-entertainment) .fa-nudge-icon {
-        background: rgba(225, 112, 85, 0.15);
-        color: #E17055;
+        background: var(--fa-accent-subtle);
+        color: var(--fa-accent);
       }
 
       .fa-nudge-title {
@@ -503,49 +555,49 @@
       }
 
       .fa-badge-reading {
-        background: rgba(108, 92, 231, 0.2);
-        color: #6C5CE7;
+        background: var(--fa-accent-subtle);
+        color: var(--fa-accent);
       }
       .fa-badge-browsing {
-        background: rgba(0, 184, 148, 0.2);
-        color: #00B894;
+        background: rgba(52, 168, 83, 0.1);
+        color: #34a853;
       }
       .fa-badge-entertainment {
-        background: rgba(225, 112, 85, 0.2);
-        color: #E17055;
+        background: rgba(251, 188, 4, 0.12);
+        color: #f9ab00;
       }
 
       .fa-nudge-subtitle {
         font-size: 10px;
-        color: #5a5a6e;
+        color: var(--fa-text-muted);
         font-weight: 500;
       }
 
       .fa-close-btn {
         width: 28px;
         height: 28px;
-        border-radius: 8px;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        color: #8b8b9e;
+        border-radius: 50%;
+        background: transparent;
+        border: none;
+        color: var(--fa-text-muted);
         font-size: 14px;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.2s;
+        transition: all 0.15s;
         flex-shrink: 0;
       }
 
       .fa-close-btn:hover {
-        background: rgba(255, 255, 255, 0.1);
-        color: #f0f0f5;
+        background: var(--fa-bg-hover);
+        color: var(--fa-text);
       }
 
       .fa-nudge-message {
-        font-size: 14px;
-        line-height: 1.5;
-        color: #c8c8d8;
+        font-size: 13px;
+        line-height: 1.55;
+        color: var(--fa-text-secondary);
         margin-bottom: 16px;
       }
 
@@ -555,35 +607,35 @@
         display: flex;
         align-items: center;
         gap: 16px;
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        border-radius: 12px;
+        background: var(--fa-bg-elevated);
+        border: 1px solid var(--fa-border-subtle);
+        border-radius: 10px;
         padding: 14px;
         margin-bottom: 16px;
       }
 
       .fa-timer-ring {
         position: relative;
-        width: 56px;
-        height: 56px;
+        width: 52px;
+        height: 52px;
         flex-shrink: 0;
       }
 
       .fa-timer-ring svg {
-        width: 56px;
-        height: 56px;
+        width: 52px;
+        height: 52px;
         transform: rotate(-90deg);
       }
 
       .fa-ring-bg {
         fill: none;
-        stroke: rgba(255, 255, 255, 0.06);
+        stroke: var(--fa-ring-bg);
         stroke-width: 3;
       }
 
       .fa-ring-progress {
         fill: none;
-        stroke: #ff4757;
+        stroke: var(--fa-ring-progress);
         stroke-width: 3;
         stroke-linecap: round;
         transition: stroke-dashoffset 1s linear;
@@ -594,10 +646,10 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        font-size: 18px;
+        font-size: 16px;
         font-weight: 700;
         font-variant-numeric: tabular-nums;
-        color: #ff4757;
+        color: var(--fa-danger);
       }
 
       .fa-timer-info {
@@ -607,13 +659,13 @@
       .fa-timer-label {
         font-size: 13px;
         font-weight: 500;
-        color: #f0f0f5;
+        color: var(--fa-text);
         margin-bottom: 2px;
       }
 
       .fa-timer-hint {
         font-size: 11px;
-        color: #5a5a6e;
+        color: var(--fa-text-muted);
       }
 
       /* ── Buttons ──────────────────────────────────────────────── */
@@ -624,12 +676,12 @@
       }
 
       .fa-btn {
-        padding: 10px 16px;
-        border-radius: 10px;
+        padding: 9px 16px;
+        border-radius: 8px;
         font-size: 13px;
         font-weight: 600;
         cursor: pointer;
-        transition: all 0.2s;
+        transition: all 0.15s;
         border: none;
         display: flex;
         align-items: center;
@@ -638,35 +690,34 @@
       }
 
       .fa-btn-primary {
-        background: linear-gradient(135deg, #6C5CE7, #a29bfe);
-        color: white;
+        background: var(--fa-accent);
+        color: #fff;
         flex: 1;
         justify-content: center;
       }
 
       .fa-btn-primary:hover {
-        opacity: 0.9;
-        transform: translateY(-1px);
+        background: var(--fa-accent-hover);
       }
 
       .fa-btn-ghost {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        color: #8b8b9e;
+        background: var(--fa-btn-ghost-bg);
+        border: 1px solid var(--fa-btn-ghost-border);
+        color: var(--fa-btn-ghost-text);
       }
 
       .fa-btn-ghost:hover {
-        background: rgba(255, 255, 255, 0.1);
-        color: #f0f0f5;
+        background: var(--fa-btn-ghost-hover);
+        color: var(--fa-text);
       }
 
       .fa-btn-wide {
         width: 100%;
         justify-content: center;
-        padding: 12px;
+        padding: 11px;
       }
 
-      /* ── Final Message ────────────────────────────────────────── */
+      /* ── Final Message (Stage 3) ───────────────────────────────── */
 
       .fa-final {
         top: 0;
@@ -676,35 +727,35 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background: rgba(0, 0, 0, 0.7);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
+        background: var(--fa-overlay-bg);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
         pointer-events: auto;
       }
 
       .fa-final-card {
-        width: 420px;
-        background: rgba(15, 15, 22, 0.98);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 20px;
-        padding: 40px 32px;
+        width: 400px;
+        background: var(--fa-bg);
+        border: 1px solid var(--fa-border);
+        border-radius: 16px;
+        padding: 36px 28px;
         text-align: center;
-        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
-        color: #f0f0f5;
-        animation: fa-popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        box-shadow: var(--fa-shadow-heavy);
+        color: var(--fa-text);
+        animation: fa-popIn 0.3s cubic-bezier(0.2, 0, 0, 1);
       }
 
       @keyframes fa-popIn {
-        from { transform: scale(0.9); opacity: 0; }
+        from { transform: scale(0.95); opacity: 0; }
         to { transform: scale(1); opacity: 1; }
       }
 
       .fa-final-icon {
-        width: 72px;
-        height: 72px;
-        border-radius: 20px;
-        background: rgba(108, 92, 231, 0.15);
-        color: #6C5CE7;
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: var(--fa-accent-subtle);
+        color: var(--fa-accent);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -712,25 +763,25 @@
       }
 
       .fa-final-title {
-        font-size: 22px;
-        font-weight: 700;
+        font-size: 20px;
+        font-weight: 600;
         margin-bottom: 6px;
-        letter-spacing: -0.3px;
+        letter-spacing: -0.2px;
       }
 
       .fa-final-subtitle {
-        font-size: 14px;
-        color: #8b8b9e;
+        font-size: 13px;
+        color: var(--fa-text-muted);
         margin-bottom: 24px;
       }
 
       .fa-final-stats {
         display: flex;
         align-items: center;
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        border-radius: 14px;
-        padding: 20px;
+        background: var(--fa-stat-bg);
+        border: 1px solid var(--fa-border-subtle);
+        border-radius: 12px;
+        padding: 18px;
         margin-bottom: 20px;
       }
 
@@ -740,15 +791,16 @@
       }
 
       .fa-final-stat-value {
-        font-size: 26px;
+        font-size: 24px;
         font-weight: 700;
         display: block;
         letter-spacing: -0.5px;
+        color: var(--fa-text);
       }
 
       .fa-final-stat-label {
         font-size: 11px;
-        color: #5a5a6e;
+        color: var(--fa-text-muted);
         text-transform: uppercase;
         letter-spacing: 0.5px;
         margin-top: 4px;
@@ -757,13 +809,13 @@
 
       .fa-final-stat-divider {
         width: 1px;
-        height: 40px;
-        background: rgba(255, 255, 255, 0.08);
+        height: 36px;
+        background: var(--fa-border);
       }
 
       .fa-final-encouragement {
-        font-size: 15px;
-        color: #c8c8d8;
+        font-size: 14px;
+        color: var(--fa-text-secondary);
         margin-bottom: 24px;
         line-height: 1.5;
       }
@@ -785,17 +837,17 @@
         display: flex;
         align-items: center;
         gap: 12px;
-        padding: 12px 20px;
-        background: linear-gradient(135deg, rgba(255, 165, 2, 0.95), rgba(255, 130, 0, 0.95));
-        backdrop-filter: blur(10px);
-        color: #1a1a2e;
+        padding: 10px 16px;
+        background: var(--fa-warning-bg);
+        border-bottom: 1px solid var(--fa-warning-border);
+        color: var(--fa-warning-text);
         font-size: 13px;
         font-weight: 500;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
       }
 
       .fa-warning-icon {
-        font-size: 18px;
+        font-size: 16px;
         flex-shrink: 0;
       }
 
@@ -807,12 +859,12 @@
       .fa-warning-btn {
         display: flex;
         align-items: center;
-        gap: 6px;
-        padding: 6px 14px;
-        background: rgba(0, 0, 0, 0.15);
-        border: 1px solid rgba(0, 0, 0, 0.1);
-        border-radius: 8px;
-        color: #1a1a2e;
+        gap: 5px;
+        padding: 6px 12px;
+        background: var(--fa-accent);
+        border: none;
+        border-radius: 6px;
+        color: #fff;
         font-size: 12px;
         font-weight: 600;
         cursor: pointer;
@@ -822,37 +874,41 @@
       }
 
       .fa-warning-btn:hover {
-        background: rgba(0, 0, 0, 0.25);
+        background: var(--fa-accent-hover);
       }
 
       .fa-warning-dismiss {
         background: none;
         border: none;
-        color: rgba(0, 0, 0, 0.5);
+        color: var(--fa-text-muted);
         font-size: 16px;
         cursor: pointer;
         padding: 4px 8px;
+        border-radius: 50%;
+        transition: background 0.15s;
         font-family: inherit;
       }
 
       .fa-warning-dismiss:hover {
-        color: rgba(0, 0, 0, 0.8);
+        background: var(--fa-bg-hover);
+        color: var(--fa-text);
       }
 
-      /* ── Distraction History (in Final overlay) ─────────────── */
+      /* ── Distraction History ──────────────────────────────────── */
 
       .fa-history-section {
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        border-radius: 12px;
+        background: var(--fa-history-bg);
+        border: 1px solid var(--fa-border-subtle);
+        border-radius: 10px;
         padding: 14px;
         margin-bottom: 20px;
+        text-align: left;
       }
 
       .fa-history-label {
         font-size: 10px;
         font-weight: 600;
-        color: #6C5CE7;
+        color: var(--fa-accent);
         text-transform: uppercase;
         letter-spacing: 0.8px;
         display: block;
@@ -860,11 +916,11 @@
       }
 
       .fa-history-list {
-        max-height: 140px;
+        max-height: 120px;
         overflow-y: auto;
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        gap: 4px;
       }
 
       .fa-history-item {
@@ -872,20 +928,31 @@
         justify-content: space-between;
         align-items: center;
         padding: 6px 10px;
-        background: rgba(255, 255, 255, 0.03);
-        border-radius: 8px;
+        background: var(--fa-bg);
+        border-radius: 6px;
+        border: 1px solid var(--fa-border-subtle);
       }
 
       .fa-history-domain {
         font-size: 12px;
-        color: #c8c8d8;
+        color: var(--fa-text-secondary);
         font-weight: 500;
       }
 
       .fa-history-time {
         font-size: 10px;
-        color: #5a5a6e;
+        color: var(--fa-text-muted);
         font-weight: 500;
+      }
+
+      /* ── Scrollbar (Chrome-native) ─────────────────────────────── */
+
+      .fa-history-list::-webkit-scrollbar {
+        width: 4px;
+      }
+      .fa-history-list::-webkit-scrollbar-thumb {
+        background: var(--fa-border);
+        border-radius: 4px;
       }
     `;
   }
