@@ -1,25 +1,66 @@
-/* ── Focus Assistant Popup ─────────────────────────────────────────────────── */
+/* ── Focus Assistant Popup — Chrome-native Theme ──────────────────────────── */
 
 :root {
-  --bg-primary: #0f0f14;
-  --bg-secondary: #1a1a24;
-  --bg-card: rgba(255, 255, 255, 0.04);
-  --bg-card-hover: rgba(255, 255, 255, 0.08);
-  --border: rgba(255, 255, 255, 0.08);
-  --border-hover: rgba(255, 255, 255, 0.15);
-  --text-primary: #f0f0f5;
-  --text-secondary: #8b8b9e;
-  --text-muted: #5a5a6e;
-  --accent-reading: #6C5CE7;
-  --accent-reading-glow: rgba(108, 92, 231, 0.3);
-  --accent-browsing: #00B894;
-  --accent-browsing-glow: rgba(0, 184, 148, 0.3);
-  --accent-entertainment: #E17055;
-  --accent-entertainment-glow: rgba(225, 112, 85, 0.3);
-  --accent-stop: #ff4757;
+  /* Light mode (default) */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-card: #f1f3f4;
+  --bg-card-hover: #e8eaed;
+  --border: #dadce0;
+  --border-hover: #bdc1c6;
+  --border-subtle: #e8eaed;
+  --text-primary: #202124;
+  --text-secondary: #5f6368;
+  --text-muted: #80868b;
+  --accent: #1a73e8;
+  --accent-hover: #1765cc;
+  --accent-subtle: rgba(26, 115, 232, 0.08);
+  --accent-glow: rgba(26, 115, 232, 0.2);
+  --accent-reading: #1a73e8;
+  --accent-reading-subtle: rgba(26, 115, 232, 0.08);
+  --accent-browsing: #34a853;
+  --accent-browsing-subtle: rgba(52, 168, 83, 0.08);
+  --accent-entertainment: #f9ab00;
+  --accent-entertainment-subtle: rgba(249, 171, 0, 0.08);
+  --accent-stop: #d93025;
+  --accent-stop-subtle: rgba(217, 48, 37, 0.06);
+  --accent-stop-hover: rgba(217, 48, 37, 0.12);
+  --shadow: 0 1px 3px rgba(60, 64, 67, 0.1);
   --radius: 12px;
   --radius-sm: 8px;
-  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition: 0.15s ease;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-primary: #292a2d;
+    --bg-secondary: #35363a;
+    --bg-card: #35363a;
+    --bg-card-hover: #3c3d41;
+    --border: #3c3d41;
+    --border-hover: #5f6368;
+    --border-subtle: #4a4b50;
+    --text-primary: #e8eaed;
+    --text-secondary: #9aa0a6;
+    --text-muted: #80868b;
+    --accent: #8ab4f8;
+    --accent-hover: #aecbfa;
+    --accent-subtle: rgba(138, 180, 248, 0.12);
+    --accent-glow: rgba(138, 180, 248, 0.2);
+    --accent-reading: #8ab4f8;
+    --accent-reading-subtle: rgba(138, 180, 248, 0.1);
+    --accent-browsing: #81c995;
+    --accent-browsing-subtle: rgba(129, 201, 149, 0.1);
+    --accent-entertainment: #fdd663;
+    --accent-entertainment-subtle: rgba(253, 214, 99, 0.1);
+    --accent-stop: #f28b82;
+    --accent-stop-subtle: rgba(242, 139, 130, 0.08);
+    --accent-stop-hover: rgba(242, 139, 130, 0.16);
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --radius: 12px;
+    --radius-sm: 8px;
+    --transition: 0.15s ease;
+  }
 }
 
 * {
@@ -29,7 +70,7 @@
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Inter', 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: var(--bg-primary);
   color: var(--text-primary);
   width: 360px;
@@ -66,17 +107,15 @@ body {
   font-size: 15px;
   font-weight: 700;
   letter-spacing: -0.3px;
-  background: linear-gradient(135deg, #6C5CE7, #a29bfe);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--text-primary);
 }
 
 .settings-btn {
-  background: var(--bg-card);
+  background: transparent;
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text-secondary);
-  padding: 8px;
+  border-radius: 50%;
+  color: var(--text-muted);
+  padding: 7px;
   cursor: pointer;
   transition: var(--transition);
   display: flex;
@@ -86,33 +125,32 @@ body {
 
 .settings-btn:hover {
   background: var(--bg-card-hover);
-  border-color: var(--border-hover);
   color: var(--text-primary);
 }
 
 /* ── Mode Selection ─────────────────────────────────────────────────────── */
 
 .section-label {
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 11px;
+  font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 14px;
+  letter-spacing: 0.8px;
+  margin-bottom: 12px;
 }
 
 .mode-cards {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .mode-card {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 14px 16px;
-  background: var(--bg-card);
+  padding: 12px 14px;
+  background: var(--bg-primary);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   cursor: pointer;
@@ -133,20 +171,20 @@ body {
 }
 
 .mode-card[data-mode="reading"]::before {
-  background: linear-gradient(135deg, var(--accent-reading-glow), transparent 60%);
+  background: var(--accent-reading-subtle);
 }
 
 .mode-card[data-mode="browsing"]::before {
-  background: linear-gradient(135deg, var(--accent-browsing-glow), transparent 60%);
+  background: var(--accent-browsing-subtle);
 }
 
 .mode-card[data-mode="entertainment"]::before {
-  background: linear-gradient(135deg, var(--accent-entertainment-glow), transparent 60%);
+  background: var(--accent-entertainment-subtle);
 }
 
 .mode-card:hover {
   border-color: var(--border-hover);
-  transform: translateY(-1px);
+  box-shadow: var(--shadow);
 }
 
 .mode-card:hover::before {
@@ -154,12 +192,12 @@ body {
 }
 
 .mode-card:active {
-  transform: translateY(0);
+  transform: scale(0.98);
 }
 
 .mode-icon {
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border-radius: 10px;
   display: flex;
   align-items: center;
@@ -170,17 +208,17 @@ body {
 }
 
 .reading-icon {
-  background: rgba(108, 92, 231, 0.15);
+  background: var(--accent-reading-subtle);
   color: var(--accent-reading);
 }
 
 .browsing-icon {
-  background: rgba(0, 184, 148, 0.15);
+  background: var(--accent-browsing-subtle);
   color: var(--accent-browsing);
 }
 
 .entertainment-icon {
-  background: rgba(225, 112, 85, 0.15);
+  background: var(--accent-entertainment-subtle);
   color: var(--accent-entertainment);
 }
 
@@ -204,13 +242,13 @@ body {
 /* ── Session Dashboard ──────────────────────────────────────────────────── */
 
 .session-dashboard {
-  animation: fadeIn 0.3s ease;
+  animation: fadeIn 0.2s ease;
 }
 
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(6px);
   }
 
   to {
@@ -227,30 +265,27 @@ body {
 }
 
 .session-mode-badge {
-  padding: 5px 14px;
-  border-radius: 20px;
-  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .session-mode-badge.reading {
-  background: rgba(108, 92, 231, 0.2);
+  background: var(--accent-reading-subtle);
   color: var(--accent-reading);
-  border: 1px solid rgba(108, 92, 231, 0.3);
 }
 
 .session-mode-badge.browsing {
-  background: rgba(0, 184, 148, 0.2);
+  background: var(--accent-browsing-subtle);
   color: var(--accent-browsing);
-  border: 1px solid rgba(0, 184, 148, 0.3);
 }
 
 .session-mode-badge.entertainment {
-  background: rgba(225, 112, 85, 0.2);
+  background: var(--accent-entertainment-subtle);
   color: var(--accent-entertainment);
-  border: 1px solid rgba(225, 112, 85, 0.3);
 }
 
 .session-status {
@@ -266,7 +301,7 @@ body {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 16px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .stat {
@@ -275,25 +310,26 @@ body {
 }
 
 .stat-value {
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   display: block;
   letter-spacing: -0.5px;
+  color: var(--text-primary);
 }
 
 .stat-label {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-top: 4px;
+  margin-top: 3px;
   display: block;
 }
 
 .stat-divider {
   width: 1px;
-  height: 40px;
+  height: 36px;
   background: var(--border);
 }
 
@@ -302,12 +338,12 @@ body {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 10px 14px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .anchor-label {
   font-size: 10px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.8px;
@@ -325,11 +361,11 @@ body {
 }
 
 .topic-info {
-  background: rgba(108, 92, 231, 0.08);
-  border: 1px solid rgba(108, 92, 231, 0.15);
+  background: var(--accent-reading-subtle);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 10px 14px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .topic-label {
@@ -347,14 +383,13 @@ body {
   color: var(--text-secondary);
   display: block;
   line-height: 1.4;
-  font-style: italic;
 }
 
 .stop-btn {
   width: 100%;
-  padding: 12px;
-  background: rgba(255, 71, 87, 0.1);
-  border: 1px solid rgba(255, 71, 87, 0.2);
+  padding: 10px;
+  background: var(--accent-stop-subtle);
+  border: 1px solid transparent;
   border-radius: var(--radius-sm);
   color: var(--accent-stop);
   font-size: 13px;
@@ -369,14 +404,13 @@ body {
 }
 
 .stop-btn:hover {
-  background: rgba(255, 71, 87, 0.2);
-  border-color: rgba(255, 71, 87, 0.4);
+  background: var(--accent-stop-hover);
 }
 
 /* ── Settings Panel ─────────────────────────────────────────────────────── */
 
 .settings-panel {
-  animation: fadeIn 0.3s ease;
+  animation: fadeIn 0.2s ease;
 }
 
 .settings-title {
@@ -387,7 +421,7 @@ body {
 }
 
 .setting-group {
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 .setting-label {
@@ -395,7 +429,7 @@ body {
   font-weight: 500;
   color: var(--text-secondary);
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .setting-hint {
@@ -426,10 +460,10 @@ body {
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: var(--accent-reading);
+  background: var(--accent);
   cursor: pointer;
   border: 2px solid var(--bg-primary);
-  box-shadow: 0 0 8px var(--accent-reading-glow);
+  box-shadow: 0 0 0 1px var(--border);
 }
 
 .setting-value {
@@ -444,11 +478,11 @@ body {
 textarea {
   width: 100%;
   padding: 10px 12px;
-  background: var(--bg-card);
+  background: var(--bg-primary);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text-primary);
-  font-family: 'Inter', monospace;
+  font-family: 'Inter', sans-serif;
   font-size: 12px;
   resize: vertical;
   outline: none;
@@ -456,8 +490,8 @@ textarea {
 }
 
 textarea:focus {
-  border-color: var(--accent-reading);
-  box-shadow: 0 0 0 3px var(--accent-reading-glow);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-subtle);
 }
 
 textarea::placeholder {
@@ -467,10 +501,10 @@ textarea::placeholder {
 .save-settings-btn {
   width: 100%;
   padding: 10px;
-  background: linear-gradient(135deg, #6C5CE7, #a29bfe);
+  background: var(--accent);
   border: none;
   border-radius: var(--radius-sm);
-  color: white;
+  color: #fff;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -479,12 +513,11 @@ textarea::placeholder {
 }
 
 .save-settings-btn:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
+  background: var(--accent-hover);
 }
 
 .save-settings-btn:active {
-  transform: translateY(0);
+  transform: scale(0.98);
 }
 
 /* ── Distraction History ────────────────────────────────────────────────── */
@@ -494,7 +527,7 @@ textarea::placeholder {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 10px 14px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .history-label {
@@ -508,11 +541,11 @@ textarea::placeholder {
 }
 
 .history-list {
-  max-height: 120px;
+  max-height: 100px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
 }
 
 .history-entry {
@@ -520,7 +553,8 @@ textarea::placeholder {
   justify-content: space-between;
   align-items: center;
   padding: 5px 8px;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-subtle);
   border-radius: 6px;
 }
 
@@ -541,7 +575,7 @@ textarea::placeholder {
 .setting-text-input {
   width: 100%;
   padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--bg-primary);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text-primary);
@@ -553,7 +587,7 @@ textarea::placeholder {
 .setting-text-input:focus {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(108, 92, 231, 0.15);
+  box-shadow: 0 0 0 2px var(--accent-subtle);
 }
 
 .setting-text-input::placeholder {
