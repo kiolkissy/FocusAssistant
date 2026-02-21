@@ -412,17 +412,33 @@ async function handleGraceExpired() {
         }
     };
 
-    // Send to distracting tab
+    // 1. Send to the tab that triggered the grace period (distracted tab)
     if (focusState.graceTabId) {
-        try { await chrome.tabs.sendMessage(focusState.graceTabId, endData); } catch { }
+        chrome.tabs.sendMessage(focusState.graceTabId, endData).catch(() => { });
     }
 
-    // Also send to anchor tab
+    // 2. Also send to anchor tab
     if (focusState.anchorTabId && focusState.anchorTabId !== focusState.graceTabId) {
-        try { await chrome.tabs.sendMessage(focusState.anchorTabId, endData); } catch { }
+        chrome.tabs.sendMessage(focusState.anchorTabId, endData).catch(() => { });
     }
 
-    deactivateFocus();
+    // 3. CRITICAL: Also send to the currently active tab (user might have switched)
+    try {
+        const activeTabs = await chrome.tabs.query({ active: true, currentWindow: true });
+        if (activeTabs.length > 0) {
+            const activeTabId = activeTabs[0].id;
+            if (activeTabId !== focusState.graceTabId && activeTabId !== focusState.anchorTabId) {
+                chrome.tabs.sendMessage(activeTabId, endData).catch(() => { });
+            }
+        }
+    } catch (err) {
+        console.warn('[FocusAssistant] Error querying active tab for final message:', err);
+    }
+
+    // Give a small moment for messages to propagate before deactivating
+    setTimeout(() => {
+        deactivateFocus();
+    }, 1000);
 }
 
 // ── Focus Activation / Deactivation ────────────────────────────────────────────
