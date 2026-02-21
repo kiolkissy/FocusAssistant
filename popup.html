@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=400">
@@ -7,6 +8,7 @@
   <link rel="stylesheet" href="popup.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
+
 <body>
   <div class="popup-container">
     <!-- Header -->
@@ -14,12 +16,12 @@
       <div class="logo">
         <div class="logo-icon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="10" stroke="url(#grad)" stroke-width="2"/>
-            <circle cx="12" cy="12" r="5" fill="url(#grad)"/>
+            <circle cx="12" cy="12" r="10" stroke="url(#grad)" stroke-width="2" />
+            <circle cx="12" cy="12" r="5" fill="url(#grad)" />
             <defs>
               <linearGradient id="grad" x1="0" y1="0" x2="24" y2="24">
-                <stop offset="0%" stop-color="#6C5CE7"/>
-                <stop offset="100%" stop-color="#a29bfe"/>
+                <stop offset="0%" stop-color="#6C5CE7" />
+                <stop offset="100%" stop-color="#a29bfe" />
               </linearGradient>
             </defs>
           </svg>
@@ -28,8 +30,9 @@
       </div>
       <button class="settings-btn" id="settingsToggle" title="Settings">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="3"/>
-          <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+          <circle cx="12" cy="12" r="3" />
+          <path
+            d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
         </svg>
       </button>
     </header>
@@ -41,8 +44,8 @@
         <button class="mode-card" data-mode="reading">
           <div class="mode-icon reading-icon">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
             </svg>
           </div>
           <span class="mode-name">Reading</span>
@@ -52,9 +55,9 @@
         <button class="mode-card" data-mode="browsing">
           <div class="mode-icon browsing-icon">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <circle cx="12" cy="12" r="10"/>
-              <line x1="2" y1="12" x2="22" y2="12"/>
-              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+              <circle cx="12" cy="12" r="10" />
+              <line x1="2" y1="12" x2="22" y2="12" />
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
             </svg>
           </div>
           <span class="mode-name">Browsing</span>
@@ -64,7 +67,7 @@
         <button class="mode-card" data-mode="entertainment">
           <div class="mode-icon entertainment-icon">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <polygon points="5 3 19 12 5 21 5 3"/>
+              <polygon points="5 3 19 12 5 21 5 3" />
             </svg>
           </div>
           <span class="mode-name">Entertainment</span>
@@ -97,9 +100,14 @@
         <span class="anchor-url" id="anchorUrl" title=""></span>
       </div>
 
+      <div class="topic-info hidden" id="topicInfo">
+        <span class="topic-label">📌 Topic detected</span>
+        <span class="topic-terms" id="topicTerms"></span>
+      </div>
+
       <button class="stop-btn" id="stopFocus">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-          <rect x="4" y="4" width="16" height="16" rx="2"/>
+          <rect x="4" y="4" width="16" height="16" rx="2" />
         </svg>
         End Focus Session
       </button>
@@ -120,7 +128,8 @@
       <div class="setting-group">
         <label class="setting-label">Browsing Mode — Allowed Domains</label>
         <p class="setting-hint">One domain per line (e.g. github.com)</p>
-        <textarea id="allowlistInput" rows="4" placeholder="github.com&#10;stackoverflow.com&#10;docs.google.com"></textarea>
+        <textarea id="allowlistInput" rows="4"
+          placeholder="github.com&#10;stackoverflow.com&#10;docs.google.com"></textarea>
       </div>
 
       <button class="save-settings-btn" id="saveSettings">Save Settings</button>
@@ -129,4 +138,5 @@
 
   <script src="popup.js"></script>
 </body>
+
 </html>

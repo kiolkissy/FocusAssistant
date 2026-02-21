@@ -5,42 +5,42 @@
  */
 
 (() => {
-    // Prevent double injection
-    if (window.__focusAssistantInjected) return;
-    window.__focusAssistantInjected = true;
+  // Prevent double injection
+  if (window.__focusAssistantInjected) return;
+  window.__focusAssistantInjected = true;
 
-    let shadowHost = null;
-    let shadowRoot = null;
-    let timerInterval = null;
-    let currentOverlay = null;
+  let shadowHost = null;
+  let shadowRoot = null;
+  let timerInterval = null;
+  let currentOverlay = null;
 
-    // ── Shadow DOM Setup ───────────────────────────────────────────────────────
+  // ── Shadow DOM Setup ───────────────────────────────────────────────────────
 
-    function ensureShadowHost() {
-        if (shadowHost && document.body.contains(shadowHost)) return;
+  function ensureShadowHost() {
+    if (shadowHost && document.body.contains(shadowHost)) return;
 
-        shadowHost = document.createElement('div');
-        shadowHost.id = 'focus-assistant-host';
-        shadowHost.style.cssText = 'position:fixed;top:0;left:0;width:0;height:0;z-index:2147483647;pointer-events:none;';
-        document.body.appendChild(shadowHost);
+    shadowHost = document.createElement('div');
+    shadowHost.id = 'focus-assistant-host';
+    shadowHost.style.cssText = 'position:fixed;top:0;left:0;width:0;height:0;z-index:2147483647;pointer-events:none;';
+    document.body.appendChild(shadowHost);
 
-        shadowRoot = shadowHost.attachShadow({ mode: 'closed' });
+    shadowRoot = shadowHost.attachShadow({ mode: 'closed' });
 
-        // Inject styles into shadow
-        const style = document.createElement('style');
-        style.textContent = getShadowStyles();
-        shadowRoot.appendChild(style);
-    }
+    // Inject styles into shadow
+    const style = document.createElement('style');
+    style.textContent = getShadowStyles();
+    shadowRoot.appendChild(style);
+  }
 
-    // ── Nudge Overlay ──────────────────────────────────────────────────────────
+  // ── Nudge Overlay ──────────────────────────────────────────────────────────
 
-    function showNudge(data) {
-        ensureShadowHost();
-        removeOverlay();
+  function showNudge(data) {
+    ensureShadowHost();
+    removeOverlay();
 
-        const overlay = document.createElement('div');
-        overlay.className = 'fa-overlay fa-nudge';
-        overlay.innerHTML = `
+    const overlay = document.createElement('div');
+    overlay.className = 'fa-overlay fa-nudge';
+    overlay.innerHTML = `
       <div class="fa-nudge-card">
         <div class="fa-nudge-header">
           <div class="fa-nudge-icon">${getModeIcon(data.mode)}</div>
@@ -76,51 +76,51 @@
       </div>
     `;
 
-        shadowRoot.appendChild(overlay);
-        currentOverlay = overlay;
+    shadowRoot.appendChild(overlay);
+    currentOverlay = overlay;
 
-        // Animate in
-        requestAnimationFrame(() => {
-            overlay.classList.add('fa-visible');
-        });
+    // Animate in
+    requestAnimationFrame(() => {
+      overlay.classList.add('fa-visible');
+    });
 
-        // Start countdown
-        startCountdown(data.graceDuration);
+    // Start countdown
+    startCountdown(data.graceDuration);
 
-        // Pointer events on the card
-        shadowHost.style.pointerEvents = 'none';
-        const card = overlay.querySelector('.fa-nudge-card');
-        card.style.pointerEvents = 'auto';
+    // Pointer events on the card
+    shadowHost.style.pointerEvents = 'none';
+    const card = overlay.querySelector('.fa-nudge-card');
+    card.style.pointerEvents = 'auto';
 
-        // Event listeners
-        shadowRoot.getElementById('fa-goback').addEventListener('click', () => {
-            chrome.runtime.sendMessage({ type: 'USER_RETURNED' });
-            removeOverlay();
-        });
+    // Event listeners
+    shadowRoot.getElementById('fa-goback').addEventListener('click', () => {
+      chrome.runtime.sendMessage({ type: 'USER_RETURNED' });
+      removeOverlay();
+    });
 
-        shadowRoot.getElementById('fa-dismiss').addEventListener('click', () => {
-            removeOverlay();
-        });
+    shadowRoot.getElementById('fa-dismiss').addEventListener('click', () => {
+      removeOverlay();
+    });
 
-        shadowRoot.getElementById('fa-dismiss2').addEventListener('click', () => {
-            removeOverlay();
-        });
-    }
+    shadowRoot.getElementById('fa-dismiss2').addEventListener('click', () => {
+      removeOverlay();
+    });
+  }
 
-    // ── Final Message Overlay ──────────────────────────────────────────────────
+  // ── Final Message Overlay ──────────────────────────────────────────────────
 
-    function showFinalMessage(data) {
-        ensureShadowHost();
-        removeOverlay();
+  function showFinalMessage(data) {
+    ensureShadowHost();
+    removeOverlay();
 
-        const minutes = data.duration || 0;
-        const timeStr = minutes >= 60
-            ? `${Math.floor(minutes / 60)}h ${minutes % 60}m`
-            : `${minutes} minute${minutes !== 1 ? 's' : ''}`;
+    const minutes = data.duration || 0;
+    const timeStr = minutes >= 60
+      ? `${Math.floor(minutes / 60)}h ${minutes % 60}m`
+      : `${minutes} minute${minutes !== 1 ? 's' : ''}`;
 
-        const overlay = document.createElement('div');
-        overlay.className = 'fa-overlay fa-final';
-        overlay.innerHTML = `
+    const overlay = document.createElement('div');
+    overlay.className = 'fa-overlay fa-final';
+    overlay.innerHTML = `
       <div class="fa-final-card">
         <div class="fa-final-icon">
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -146,142 +146,198 @@
       </div>
     `;
 
-        shadowRoot.appendChild(overlay);
-        currentOverlay = overlay;
-        shadowHost.style.pointerEvents = 'auto';
+    shadowRoot.appendChild(overlay);
+    currentOverlay = overlay;
+    shadowHost.style.pointerEvents = 'auto';
 
-        requestAnimationFrame(() => {
-            overlay.classList.add('fa-visible');
-        });
-
-        shadowRoot.getElementById('fa-close-final').addEventListener('click', () => {
-            removeOverlay();
-        });
-    }
-
-    // ── Dismiss Overlay ────────────────────────────────────────────────────────
-
-    function showDismiss() {
-        removeOverlay();
-    }
-
-    // ── Countdown Timer ────────────────────────────────────────────────────────
-
-    function startCountdown(seconds) {
-        clearInterval(timerInterval);
-        let remaining = seconds;
-        const circumference = 2 * Math.PI * 26;
-        const ring = shadowRoot.getElementById('fa-ring');
-        const timerText = shadowRoot.getElementById('fa-timer');
-
-        if (ring) {
-            ring.style.strokeDasharray = circumference;
-            ring.style.strokeDashoffset = 0;
-        }
-
-        function tick() {
-            remaining--;
-            if (timerText) timerText.textContent = remaining;
-
-            if (ring) {
-                const progress = 1 - (remaining / seconds);
-                ring.style.strokeDashoffset = circumference * progress;
-            }
-
-            if (remaining <= 0) {
-                clearInterval(timerInterval);
-            }
-        }
-
-        timerInterval = setInterval(tick, 1000);
-    }
-
-    // ── Cleanup ────────────────────────────────────────────────────────────────
-
-    function removeOverlay() {
-        clearInterval(timerInterval);
-        if (currentOverlay) {
-            currentOverlay.classList.remove('fa-visible');
-            currentOverlay.classList.add('fa-hiding');
-            setTimeout(() => {
-                currentOverlay?.remove();
-                currentOverlay = null;
-                if (shadowHost) shadowHost.style.pointerEvents = 'none';
-            }, 300);
-        }
-    }
-
-    // ── Message Listener ───────────────────────────────────────────────────────
-
-    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-        switch (message.type) {
-            case 'FOCUS_NUDGE':
-                showNudge(message.data);
-                sendResponse({ received: true });
-                break;
-            case 'FOCUS_ENDED':
-                showFinalMessage(message.data);
-                sendResponse({ received: true });
-                break;
-            case 'FOCUS_DISMISS':
-                showDismiss();
-                sendResponse({ received: true });
-                break;
-        }
+    requestAnimationFrame(() => {
+      overlay.classList.add('fa-visible');
     });
 
-    // ── Helpers ────────────────────────────────────────────────────────────────
+    shadowRoot.getElementById('fa-close-final').addEventListener('click', () => {
+      removeOverlay();
+    });
+  }
 
-    function capitalize(str) {
-        return str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
+  // ── Dismiss Overlay ────────────────────────────────────────────────────────
+
+  function showDismiss() {
+    removeOverlay();
+  }
+
+  // ── Countdown Timer ────────────────────────────────────────────────────────
+
+  function startCountdown(seconds) {
+    clearInterval(timerInterval);
+    let remaining = seconds;
+    const circumference = 2 * Math.PI * 26;
+    const ring = shadowRoot.getElementById('fa-ring');
+    const timerText = shadowRoot.getElementById('fa-timer');
+
+    if (ring) {
+      ring.style.strokeDasharray = circumference;
+      ring.style.strokeDashoffset = 0;
     }
 
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+    function tick() {
+      remaining--;
+      if (timerText) timerText.textContent = remaining;
+
+      if (ring) {
+        const progress = 1 - (remaining / seconds);
+        ring.style.strokeDashoffset = circumference * progress;
+      }
+
+      if (remaining <= 0) {
+        clearInterval(timerInterval);
+      }
     }
 
-    function getModeIcon(mode) {
-        switch (mode) {
-            case 'reading':
-                return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+    timerInterval = setInterval(tick, 1000);
+  }
+
+  // ── Cleanup ────────────────────────────────────────────────────────────────
+
+  function removeOverlay() {
+    clearInterval(timerInterval);
+    if (currentOverlay) {
+      currentOverlay.classList.remove('fa-visible');
+      currentOverlay.classList.add('fa-hiding');
+      setTimeout(() => {
+        currentOverlay?.remove();
+        currentOverlay = null;
+        if (shadowHost) shadowHost.style.pointerEvents = 'none';
+      }, 300);
+    }
+  }
+
+  // ── Page Content Extraction ────────────────────────────────────────────────
+
+  function extractPageContent() {
+    // Title
+    const title = document.title || '';
+
+    // Meta description
+    const metaDesc = document.querySelector('meta[name="description"]');
+    const description = metaDesc ? metaDesc.getAttribute('content') || '' : '';
+
+    // Headings (h1, h2, h3)
+    const headings = [];
+    document.querySelectorAll('h1, h2, h3').forEach(h => {
+      const text = h.textContent.trim();
+      if (text.length > 0 && text.length < 200) {
+        headings.push(text);
+      }
+    });
+
+    // Body text — strip non-content elements
+    const cloned = document.body.cloneNode(true);
+
+    // Remove noise elements
+    const noiseSelectors = [
+      'script', 'style', 'noscript', 'iframe', 'svg',
+      'nav', 'footer', 'header',
+      '[role="navigation"]', '[role="banner"]', '[role="contentinfo"]',
+      '.nav', '.navbar', '.footer', '.header', '.sidebar', '.menu',
+      '.ad', '.ads', '.advertisement', '.cookie', '.popup', '.modal',
+      '#focus-assistant-host',
+    ];
+    noiseSelectors.forEach(sel => {
+      cloned.querySelectorAll(sel).forEach(el => el.remove());
+    });
+
+    // Get text content, collapse whitespace
+    let bodyText = cloned.textContent || '';
+    bodyText = bodyText
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 5000);    // cap at 5000 chars
+
+    return {
+      title,
+      description,
+      headings,
+      bodyText,
+      url: window.location.href,
+    };
+  }
+
+  // ── Message Listener ───────────────────────────────────────────────────────
+
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    switch (message.type) {
+      case 'EXTRACT_CONTENT':
+        const content = extractPageContent();
+        console.log('[FocusAssistant] Extracted content:', content.title, '| headings:', content.headings.length, '| body chars:', content.bodyText.length);
+        sendResponse(content);
+        break;
+      case 'FOCUS_NUDGE':
+        showNudge(message.data);
+        sendResponse({ received: true });
+        break;
+      case 'FOCUS_ENDED':
+        showFinalMessage(message.data);
+        sendResponse({ received: true });
+        break;
+      case 'FOCUS_DISMISS':
+        showDismiss();
+        sendResponse({ received: true });
+        break;
+    }
+  });
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+
+  function capitalize(str) {
+    return str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function getModeIcon(mode) {
+    switch (mode) {
+      case 'reading':
+        return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
           <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
         </svg>`;
-            case 'browsing':
-                return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      case 'browsing':
+        return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <circle cx="12" cy="12" r="10"/>
           <line x1="2" y1="12" x2="22" y2="12"/>
           <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
         </svg>`;
-            case 'entertainment':
-                return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      case 'entertainment':
+        return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <polygon points="5 3 19 12 5 21 5 3"/>
         </svg>`;
-            default:
-                return '🎯';
-        }
+      default:
+        return '🎯';
     }
+  }
 
-    function getEncouragement(minutes, distractions) {
-        if (minutes >= 60 && distractions <= 2) {
-            return "🏆 Amazing focus session! You were in the zone.";
-        } else if (minutes >= 30) {
-            return "💪 Great work! Solid focus time.";
-        } else if (minutes >= 10) {
-            return "👍 Good start! Try for longer next time.";
-        } else if (distractions > 5) {
-            return "🌱 Staying focused is a skill — keep practicing!";
-        } else {
-            return "✨ Every bit of focus counts. Keep going!";
-        }
+  function getEncouragement(minutes, distractions) {
+    if (minutes >= 60 && distractions <= 2) {
+      return "🏆 Amazing focus session! You were in the zone.";
+    } else if (minutes >= 30) {
+      return "💪 Great work! Solid focus time.";
+    } else if (minutes >= 10) {
+      return "👍 Good start! Try for longer next time.";
+    } else if (distractions > 5) {
+      return "🌱 Staying focused is a skill — keep practicing!";
+    } else {
+      return "✨ Every bit of focus counts. Keep going!";
     }
+  }
 
-    // ── Shadow DOM Styles ──────────────────────────────────────────────────────
+  // ── Shadow DOM Styles ──────────────────────────────────────────────────────
 
-    function getShadowStyles() {
-        return `
+  function getShadowStyles() {
+    return `
       @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
       * {
@@ -645,5 +701,5 @@
         line-height: 1.5;
       }
     `;
-    }
+  }
 })();

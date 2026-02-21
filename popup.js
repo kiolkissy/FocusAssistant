@@ -182,6 +182,16 @@ function showDashboard(state) {
     anchorUrlEl.textContent = displayUrl;
     anchorUrlEl.title = state.anchorUrl;
 
+    // Topic terms (Reading mode content analysis)
+    const topicInfo = document.getElementById('topicInfo');
+    const topicTerms = document.getElementById('topicTerms');
+    if (state.topTerms && state.topTerms.length > 0) {
+        topicInfo.classList.remove('hidden');
+        topicTerms.textContent = state.topTerms.slice(0, 6).join(', ');
+    } else {
+        topicInfo.classList.add('hidden');
+    }
+
     // Start elapsed timer
     startTimer(state.startTime);
 }

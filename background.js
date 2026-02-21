@@ -3,9 +3,10 @@
  * Core brain: mode management, tab monitoring, distraction detection, timers.
  */
 
-// Import categories engine — importScripts puts everything into global scope,
-// so categorizeUrl, checkRelevance, extractDomain, etc. are directly available.
+// Import engines — importScripts puts everything into global scope.
+// All functions from both files are directly available (no destructuring needed).
 importScripts('categories.js');
+importScripts('analyzer.js');
 
 // ── State ──────────────────────────────────────────────────────────────────────
 
@@ -14,6 +15,7 @@ let focusState = {
     mode: null,             // 'reading' | 'browsing' | 'entertainment'
     anchorUrl: '',          // URL where focus started
     anchorTabId: null,      // Tab where focus started
+    anchorProfile: null,    // Topic profile of the anchor page (for content analysis)
     startTime: null,        // Timestamp
     distractionCount: 0,    // How many times user was nudged
     graceActive: false,     // Is the grace period timer running?
@@ -92,7 +94,7 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
 
 // ── Core Evaluation ────────────────────────────────────────────────────────────
 
-function evaluateNavigation(tabId, url) {
+async function evaluateNavigation(tabId, url) {
     // Skip chrome:// and extension pages
     if (url.startsWith('chrome://') || url.startsWith('chrome-extension://') || url.startsWith('about:')) {
         return;
@@ -107,20 +109,124 @@ function evaluateNavigation(tabId, url) {
         return;
     }
 
+    // Same domain is always allowed
+    if (currentDomain === anchorDomain) {
+        return;
+    }
+
     // Debounce: don't nudge same URL again within cooldown
     if (url === lastNudgedUrl && Date.now() - lastNudgedTime < NUDGE_COOLDOWN_MS) {
         return;
     }
 
-    const result = checkRelevance(
-        focusState.anchorUrl,
-        url,
-        focusState.mode,
-        focusState.allowlist
-    );
+    // ── Mode-specific evaluation ───────────────────────────────────────────────
 
-    if (!result.relevant && !focusState.graceActive) {
-        triggerDistraction(tabId, url, result);
+    if (focusState.mode === 'reading') {
+        // READING MODE: Use content-based analysis
+        await evaluateReadingMode(tabId, url);
+    } else if (focusState.mode === 'browsing') {
+        // BROWSING MODE: Allowlist-based (unchanged)
+        const result = checkRelevance(focusState.anchorUrl, url, 'browsing', focusState.allowlist);
+        if (!result.relevant && !focusState.graceActive) {
+            triggerDistraction(tabId, url, result);
+        }
+    } else if (focusState.mode === 'entertainment') {
+        // ENTERTAINMENT MODE: Domain category-based (unchanged)
+        const result = checkRelevance(focusState.anchorUrl, url, 'entertainment', []);
+        if (!result.relevant && !focusState.graceActive) {
+            triggerDistraction(tabId, url, result);
+        }
+    }
+}
+
+// ── Reading Mode: Content-Based Analysis ───────────────────────────────────────
+
+// Known distraction domains — fast-path, skip content analysis
+const FAST_PATH_DISTRACTION = ['social', 'shopping', 'gaming', 'finance'];
+
+async function evaluateReadingMode(tabId, url) {
+    if (focusState.graceActive) return;
+
+    const category = categorizeUrl(url);
+
+    // Fast-path: search/AI tools always allowed
+    if (category === 'search' || category === 'ai') {
+        console.log(`[FocusAssistant] Allowed (${category}):`, url);
+        return;
+    }
+
+    // Fast-path: obvious distractions don't need content analysis
+    if (FAST_PATH_DISTRACTION.includes(category)) {
+        console.log(`[FocusAssistant] Fast-path distraction (${category}):`, url);
+        const reason = getDistractionMessage(category, 'reading');
+        triggerDistraction(tabId, url, { relevant: false, reason, category });
+        return;
+    }
+
+    // Content-based analysis: extract page content and compare
+    if (!focusState.anchorProfile) {
+        console.warn('[FocusAssistant] No anchor profile available, falling back to domain check');
+        const result = checkRelevance(focusState.anchorUrl, url, 'reading', []);
+        if (!result.relevant) triggerDistraction(tabId, url, result);
+        return;
+    }
+
+    try {
+        const pageData = await requestContentExtraction(tabId);
+        if (!pageData || !pageData.title) {
+            console.warn('[FocusAssistant] Content extraction failed, falling back to domain check');
+            const result = checkRelevance(focusState.anchorUrl, url, 'reading', []);
+            if (!result.relevant) triggerDistraction(tabId, url, result);
+            return;
+        }
+
+        const analysis = analyzeRelevance(focusState.anchorProfile, pageData, 'reading');
+        console.log(`[FocusAssistant] Content analysis: score=${analysis.score.toFixed(3)}, relevant=${analysis.relevant}, page="${pageData.title}"`);
+
+        if (!analysis.relevant) {
+            triggerDistraction(tabId, url, {
+                relevant: false,
+                reason: analysis.reason,
+                category: category,
+            });
+        }
+    } catch (err) {
+        console.error('[FocusAssistant] Content analysis error:', err);
+        // Fallback to domain-based check
+        const result = checkRelevance(focusState.anchorUrl, url, 'reading', []);
+        if (!result.relevant) triggerDistraction(tabId, url, result);
+    }
+}
+
+// ── Content Extraction Helper ──────────────────────────────────────────────────
+
+/**
+ * Request content extraction from a tab's content script.
+ * Injects the content script first if needed.
+ */
+async function requestContentExtraction(tabId) {
+    try {
+        const response = await chrome.tabs.sendMessage(tabId, { type: 'EXTRACT_CONTENT' });
+        return response;
+    } catch {
+        // Content script not loaded yet — inject and retry
+        try {
+            await chrome.scripting.executeScript({
+                target: { tabId },
+                files: ['content.js']
+            });
+            await chrome.scripting.insertCSS({
+                target: { tabId },
+                files: ['content.css']
+            });
+            // Wait for injection
+            await new Promise(r => setTimeout(r, 500));
+            const response = await chrome.tabs.sendMessage(tabId, { type: 'EXTRACT_CONTENT' });
+            return response;
+        } catch (e) {
+            console.warn('[FocusAssistant] Could not extract content from tab', tabId, e);
+            return null;
+        }
     }
 }
 
@@ -257,6 +363,7 @@ async function activateFocus(mode, tab) {
         mode,
         anchorUrl: tab.url,
         anchorTabId: tab.id,
+        anchorProfile: null,
         startTime: Date.now(),
         distractionCount: 0,
         graceActive: false,
@@ -273,6 +380,22 @@ async function activateFocus(mode, tab) {
     chrome.action.setBadgeBackgroundColor({ color: getBadgeColor(mode) });
 
     console.log(`[FocusAssistant] Activated ${mode} mode on ${tab.url}`);
+
+    // For Reading mode: extract anchor page content and build topic profile
+    if (mode === 'reading') {
+        try {
+            const pageData = await requestContentExtraction(tab.id);
+            if (pageData && pageData.title) {
+                focusState.anchorProfile = buildTopicProfile(pageData);
+                console.log('[FocusAssistant] Anchor topic profile built:', focusState.anchorProfile.topTerms);
+                await saveState();
+            } else {
+                console.warn('[FocusAssistant] Could not extract anchor page content.');
+            }
+        } catch (err) {
+            console.error('[FocusAssistant] Error building anchor profile:', err);
+        }
+    }
 }
 
 function deactivateFocus() {
@@ -316,7 +439,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
             sendResponse({
                 ...focusState,
-                elapsedMs: elapsed
+                elapsedMs: elapsed,
+                topTerms: focusState.anchorProfile?.topTerms || [],
             });
             break;
 
