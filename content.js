@@ -314,7 +314,7 @@
     bodyText = bodyText
       .replace(/\s+/g, ' ')
       .trim()
-      .slice(0, 5000);    // cap at 5000 chars
+      .slice(0, 10000);    // cap at 10000 chars for better AI context
 
     return {
       title,

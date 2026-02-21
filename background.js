@@ -33,8 +33,9 @@ let geminiApiKey = '';          // Loaded from chrome.storage
 // Debounce
 let lastNudgedUrl = '';
 let lastNudgedTime = 0;
-const NUDGE_COOLDOWN_MS = 8000;
+const NUDGE_COOLDOWN_MS = 5000;
 const WARNING_TO_NUDGE_MS = 5000;   // Time between Stage 1 warning and Stage 2 nudge
+const PAGE_LOAD_WAIT_MS = 2000;     // Wait for page content to load before extracting
 
 // ── Persistence ────────────────────────────────────────────────────────────────
 
@@ -83,8 +84,10 @@ loadSettings();
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (!focusState.active) return;
-    if (!changeInfo.url) return;
-    evaluateNavigation(tabId, changeInfo.url);
+    // Only evaluate once the page has finished loading (so content extraction gets real content)
+    if (changeInfo.status === 'complete' && tab.url) {
+        evaluateNavigation(tabId, tab.url);
+    }
 });
 
 chrome.tabs.onActivated.addListener(async (activeInfo) => {
@@ -112,7 +115,30 @@ async function evaluateNavigation(tabId, url) {
         return;
     }
 
-    // Debounce
+    // If user navigated to a DIFFERENT distraction while warning/grace is active,
+    // reset the warning for the new site (and still record it)
+    if (focusState.warningTabId || focusState.graceActive) {
+        const lastDomain = lastNudgedUrl ? extractDomain(lastNudgedUrl) : '';
+        if (currentDomain !== lastDomain) {
+            // Cancel old warning/grace and start fresh for the new distraction
+            if (focusState.graceActive) {
+                focusState.graceActive = false;
+                focusState.graceTabId = null;
+                chrome.alarms.clear('graceExpired');
+            }
+            if (focusState.warningTabId) {
+                focusState.warningTabId = null;
+                focusState._pendingNudge = null;
+                chrome.alarms.clear('warningEscalate');
+            }
+            console.log(`[FocusAssistant] New distraction detected (${currentDomain}), resetting nudge flow.`);
+        } else {
+            // Same domain as existing nudge — skip
+            return;
+        }
+    }
+
+    // Debounce same exact URL
     if (url === lastNudgedUrl && Date.now() - lastNudgedTime < NUDGE_COOLDOWN_MS) {
         return;
     }
@@ -122,10 +148,10 @@ async function evaluateNavigation(tabId, url) {
         await evaluateReadingMode(tabId, url);
     } else if (focusState.mode === 'browsing') {
         const result = checkRelevance(focusState.anchorUrl, url, 'browsing', focusState.allowlist);
-        if (!result.relevant && !focusState.graceActive) triggerWarning(tabId, url, result);
+        if (!result.relevant) triggerWarning(tabId, url, result);
     } else if (focusState.mode === 'entertainment') {
         const result = checkRelevance(focusState.anchorUrl, url, 'entertainment', []);
-        if (!result.relevant && !focusState.graceActive) triggerWarning(tabId, url, result);
+        if (!result.relevant) triggerWarning(tabId, url, result);
     }
 }
 
@@ -134,7 +160,6 @@ async function evaluateNavigation(tabId, url) {
 const FAST_PATH_DISTRACTION = ['social', 'shopping', 'gaming', 'finance'];
 
 async function evaluateReadingMode(tabId, url) {
-    if (focusState.graceActive) return;
 
     const category = categorizeUrl(url);
 
@@ -195,14 +220,37 @@ async function evaluateReadingMode(tabId, url) {
 
 // ── Content Extraction Helper ──────────────────────────────────────────────────
 
+async function waitForTabLoad(tabId) {
+    return new Promise((resolve) => {
+        const check = async () => {
+            try {
+                const tab = await chrome.tabs.get(tabId);
+                if (tab.status === 'complete') {
+                    resolve();
+                } else {
+                    setTimeout(check, 300);
+                }
+            } catch {
+                resolve(); // Tab gone, resolve anyway
+            }
+        };
+        check();
+    });
+}
+
 async function requestContentExtraction(tabId) {
+    // Wait for page to fully load before reading content
+    await waitForTabLoad(tabId);
+    // Extra delay for JS-rendered content (SPAs, React, etc.)
+    await new Promise(r => setTimeout(r, PAGE_LOAD_WAIT_MS));
+
     try {
         return await chrome.tabs.sendMessage(tabId, { type: 'EXTRACT_CONTENT' });
     } catch {
         try {
             await chrome.scripting.executeScript({ target: { tabId }, files: ['content.js'] });
             await chrome.scripting.insertCSS({ target: { tabId }, files: ['content.css'] });
-            await new Promise(r => setTimeout(r, 500));
+            await new Promise(r => setTimeout(r, 800));
             return await chrome.tabs.sendMessage(tabId, { type: 'EXTRACT_CONTENT' });
         } catch (e) {
             console.warn('[FocusAssistant] Content extraction failed:', e);
