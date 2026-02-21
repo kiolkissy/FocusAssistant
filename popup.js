@@ -67,6 +67,13 @@ function loadSettings() {
             }
         }
     });
+    // Load API key
+    chrome.runtime.sendMessage({ type: 'GET_API_KEY' }, (response) => {
+        const apiKeyInput = document.getElementById('apiKeyInput');
+        if (response && response.apiKey) {
+            apiKeyInput.value = response.apiKey;
+        }
+    });
 }
 
 // ── Event Listeners ────────────────────────────────────────────────────────────
@@ -145,15 +152,19 @@ function saveSettings() {
     chrome.runtime.sendMessage({
         type: 'UPDATE_SETTINGS',
         settings: { allowlist, graceDuration }
-    }, () => {
-        // Visual feedback
-        saveSettingsBtn.textContent = '✓ Saved!';
-        saveSettingsBtn.style.background = 'linear-gradient(135deg, #00B894, #55efc4)';
-        setTimeout(() => {
-            saveSettingsBtn.textContent = 'Save Settings';
-            saveSettingsBtn.style.background = '';
-        }, 1500);
     });
+
+    // Save API key
+    const apiKey = document.getElementById('apiKeyInput').value.trim();
+    chrome.runtime.sendMessage({ type: 'SAVE_API_KEY', apiKey });
+
+    // Visual feedback
+    saveSettingsBtn.textContent = '✓ Saved!';
+    saveSettingsBtn.style.background = 'linear-gradient(135deg, #00B894, #55efc4)';
+    setTimeout(() => {
+        saveSettingsBtn.textContent = 'Save Settings';
+        saveSettingsBtn.style.background = '';
+    }, 1500);
 }
 
 // ── View Switching ─────────────────────────────────────────────────────────────
@@ -182,14 +193,35 @@ function showDashboard(state) {
     anchorUrlEl.textContent = displayUrl;
     anchorUrlEl.title = state.anchorUrl;
 
-    // Topic terms (Reading mode content analysis)
+    // Topic info (AI summary or keyword fallback)
     const topicInfo = document.getElementById('topicInfo');
     const topicTerms = document.getElementById('topicTerms');
-    if (state.topTerms && state.topTerms.length > 0) {
+    if (state.anchorTopic) {
+        // AI-generated topic summary
+        topicInfo.classList.remove('hidden');
+        topicTerms.textContent = state.anchorTopic;
+    } else if (state.topTerms && state.topTerms.length > 0) {
+        // TF-IDF keyword fallback
         topicInfo.classList.remove('hidden');
         topicTerms.textContent = state.topTerms.slice(0, 6).join(', ');
     } else {
         topicInfo.classList.add('hidden');
+    }
+
+    // Distraction history
+    const historySection = document.getElementById('historySection');
+    const historyList = document.getElementById('historyList');
+    if (state.distractionHistory && state.distractionHistory.length > 0) {
+        historySection.classList.remove('hidden');
+        historyList.innerHTML = state.distractionHistory.slice(0, 10).map(d => {
+            const time = new Date(d.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            return `<div class="history-entry">
+                <span class="history-domain">${escapeHtml(d.domain || 'unknown')}</span>
+                <span class="history-time">${time}</span>
+            </div>`;
+        }).join('');
+    } else {
+        historySection.classList.add('hidden');
     }
 
     // Start elapsed timer
@@ -245,4 +277,10 @@ function formatUrl(url) {
     } catch {
         return url || 'Unknown';
     }
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }

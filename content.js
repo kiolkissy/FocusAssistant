@@ -107,7 +107,50 @@
     });
   }
 
-  // ── Final Message Overlay ──────────────────────────────────────────────────
+  // ── Warning Banner (Stage 1) ───────────────────────────────────────────────
+
+  function showWarning(data) {
+    ensureShadowHost();
+    removeOverlay();
+
+    const overlay = document.createElement('div');
+    overlay.className = 'fa-overlay fa-warning-bar';
+    overlay.innerHTML = `
+      <div class="fa-warning-content">
+        <span class="fa-warning-icon">⚠️</span>
+        <span class="fa-warning-text">${escapeHtml(data.message)}</span>
+        <button class="fa-warning-btn" id="fa-warning-goback">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5M12 5l-7 7 7 7"/>
+          </svg>
+          Go Back
+        </button>
+        <button class="fa-warning-dismiss" id="fa-warning-dismiss">✕</button>
+      </div>
+    `;
+
+    shadowRoot.appendChild(overlay);
+    currentOverlay = overlay;
+
+    shadowHost.style.pointerEvents = 'none';
+    const bar = overlay.querySelector('.fa-warning-content');
+    bar.style.pointerEvents = 'auto';
+
+    requestAnimationFrame(() => {
+      overlay.classList.add('fa-visible');
+    });
+
+    shadowRoot.getElementById('fa-warning-goback').addEventListener('click', () => {
+      chrome.runtime.sendMessage({ type: 'USER_RETURNED' });
+      removeOverlay();
+    });
+
+    shadowRoot.getElementById('fa-warning-dismiss').addEventListener('click', () => {
+      removeOverlay();
+    });
+  }
+
+  // ── Final Message Overlay (Stage 3) ───────────────────────────────────────
 
   function showFinalMessage(data) {
     ensureShadowHost();
@@ -117,6 +160,25 @@
     const timeStr = minutes >= 60
       ? `${Math.floor(minutes / 60)}h ${minutes % 60}m`
       : `${minutes} minute${minutes !== 1 ? 's' : ''}`;
+
+    // Build distraction history HTML
+    let historyHtml = '';
+    if (data.distractionHistory && data.distractionHistory.length > 0) {
+      const items = data.distractionHistory.slice(0, 8).map(d => {
+        const domain = d.domain || 'unknown';
+        const time = new Date(d.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        return `<div class="fa-history-item">
+          <span class="fa-history-domain">${escapeHtml(domain)}</span>
+          <span class="fa-history-time">${time}</span>
+        </div>`;
+      }).join('');
+      historyHtml = `
+        <div class="fa-history-section">
+          <span class="fa-history-label">Distraction Sites</span>
+          <div class="fa-history-list">${items}</div>
+        </div>
+      `;
+    }
 
     const overlay = document.createElement('div');
     overlay.className = 'fa-overlay fa-final';
@@ -141,6 +203,7 @@
             <span class="fa-final-stat-label">Distractions</span>
           </div>
         </div>
+        ${historyHtml}
         <p class="fa-final-encouragement">${getEncouragement(minutes, data.distractionCount)}</p>
         <button class="fa-btn fa-btn-primary fa-btn-wide" id="fa-close-final">Got it</button>
       </div>
@@ -270,6 +333,10 @@
         const content = extractPageContent();
         console.log('[FocusAssistant] Extracted content:', content.title, '| headings:', content.headings.length, '| body chars:', content.bodyText.length);
         sendResponse(content);
+        break;
+      case 'FOCUS_WARNING':
+        showWarning(message.data);
+        sendResponse({ received: true });
         break;
       case 'FOCUS_NUDGE':
         showNudge(message.data);
@@ -699,6 +766,126 @@
         color: #c8c8d8;
         margin-bottom: 24px;
         line-height: 1.5;
+      }
+
+      /* ── Warning Bar (Stage 1) ───────────────────────────────── */
+
+      .fa-warning-bar {
+        top: 0;
+        left: 0;
+        right: 0;
+        transform: translateY(-100%);
+      }
+
+      .fa-warning-bar.fa-visible {
+        transform: translateY(0);
+      }
+
+      .fa-warning-content {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 20px;
+        background: linear-gradient(135deg, rgba(255, 165, 2, 0.95), rgba(255, 130, 0, 0.95));
+        backdrop-filter: blur(10px);
+        color: #1a1a2e;
+        font-size: 13px;
+        font-weight: 500;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      }
+
+      .fa-warning-icon {
+        font-size: 18px;
+        flex-shrink: 0;
+      }
+
+      .fa-warning-text {
+        flex: 1;
+        line-height: 1.4;
+      }
+
+      .fa-warning-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        background: rgba(0, 0, 0, 0.15);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        color: #1a1a2e;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        white-space: nowrap;
+        font-family: inherit;
+      }
+
+      .fa-warning-btn:hover {
+        background: rgba(0, 0, 0, 0.25);
+      }
+
+      .fa-warning-dismiss {
+        background: none;
+        border: none;
+        color: rgba(0, 0, 0, 0.5);
+        font-size: 16px;
+        cursor: pointer;
+        padding: 4px 8px;
+        font-family: inherit;
+      }
+
+      .fa-warning-dismiss:hover {
+        color: rgba(0, 0, 0, 0.8);
+      }
+
+      /* ── Distraction History (in Final overlay) ─────────────── */
+
+      .fa-history-section {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 12px;
+        padding: 14px;
+        margin-bottom: 20px;
+      }
+
+      .fa-history-label {
+        font-size: 10px;
+        font-weight: 600;
+        color: #6C5CE7;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        display: block;
+        margin-bottom: 10px;
+      }
+
+      .fa-history-list {
+        max-height: 140px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .fa-history-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px 10px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 8px;
+      }
+
+      .fa-history-domain {
+        font-size: 12px;
+        color: #c8c8d8;
+        font-weight: 500;
+      }
+
+      .fa-history-time {
+        font-size: 10px;
+        color: #5a5a6e;
+        font-weight: 500;
       }
     `;
   }

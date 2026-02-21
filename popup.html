@@ -105,6 +105,11 @@
         <span class="topic-terms" id="topicTerms"></span>
       </div>
 
+      <div class="history-section hidden" id="historySection">
+        <span class="history-label">Distraction History</span>
+        <div class="history-list" id="historyList"></div>
+      </div>
+
       <button class="stop-btn" id="stopFocus">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
           <rect x="4" y="4" width="16" height="16" rx="2" />
@@ -130,6 +135,13 @@
         <p class="setting-hint">One domain per line (e.g. github.com)</p>
         <textarea id="allowlistInput" rows="4"
           placeholder="github.com&#10;stackoverflow.com&#10;docs.google.com"></textarea>
+      </div>
+
+      <div class="setting-group">
+        <label class="setting-label">🧠 Gemini API Key</label>
+        <p class="setting-hint">For AI-powered content analysis. Get a free key at <a
+            href="https://aistudio.google.com/apikey" target="_blank" style="color:#6C5CE7;">aistudio.google.com</a></p>
+        <input type="password" id="apiKeyInput" class="setting-text-input" placeholder="AIza..." autocomplete="off">
       </div>
 
       <button class="save-settings-btn" id="saveSettings">Save Settings</button>
